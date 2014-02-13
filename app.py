@@ -1,5 +1,6 @@
 import re
 import logging
+import sqlite3
 import subprocess
 import tornado.ioloop
 import tornado.web
@@ -14,17 +15,49 @@ class MainHandler(tornado.web.RequestHandler):
         
 
 class ScanHandler(tornado.web.RequestHandler):
+    def initialize(self):
+        conn = sqlite3.connect(":memory:")
+        self.cursor = conn.cursor()
+        self.cursor.execute('CREATE TABLE notes kw text value text')
+        
     def get(self):
-        logging.debug('SCANNING!')
-        result = subprocess.check_output(['nmap', self.request.remote_ip])
-        for r in re.finditer(r'(\d+/[a-z]{3})\s([a-z]+)\s+(.+)', result):
-            t = r.groups()
-            self.write({'port': t[0], 'state': t[1], 'service': t[2]})
+        commands = ('nmap', 'help', '?', '!',)
+
+        out = {'results': list()}
+        cmd = self.get_argument('cmd', '')
+
+        if cmd not in commands or cmd == 'help':
+            out['results'].append({'raw': 'Available commands:'})
+            out['results'].append({'raw': '* nmap - scan your IP'})
+            out['results'].append({'raw': '* ?<keyword> - query keyword'})
+            out['results'].append({'raw': '* !<keyword> definition - learn <keyword>'})
+            out['results'].append({'raw': '* !!<keyword> - forget <keyword>'})
+            out['results'].append({'raw': '* help - shows this help message'})
+
+        if cmd == 'nmap':
+            logging.debug('SCANNING!')
+            result = subprocess.check_output(['nmap', self.request.remote_ip])
+            for r in re.finditer(r'(\d+/[a-z]{3})\s([a-z]+)\s+(.+)', result):
+                t = r.groups()
+                out['results'].append({
+                    'port': t[0],
+                    'state': t[1],
+                    'service': t[2],
+                    'raw': "    ".join(r.groups(0))
+                })
+
+        self.write(out)
+
+
+class HelpHandler(tornado.web.RequestHandler):
+    def get(self):
+        out = {'results': list()}
 
 
 application = tornado.web.Application([
     (r'/', MainHandler),
     (r'/scan/', ScanHandler),
+    (r'/help/', HelpHandler),
 ])
 
 if __name__ == '__main__':

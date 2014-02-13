@@ -3,25 +3,64 @@
   <head>
     <title>intercheck 0.001</title>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <style type="text/css">
-      button {
-        width: 100px;
-        height: 50px;
-      }
-    </style>
     <script type="text/javascript">
       $(function(){
-        $('button').click(function(){
-          console.log('SCANNING!!!');
-          $.getJSON('/scan/', function(r){
-            console.log(r);
+        $('.prompt').focus();
+        $('form').submit(function(e){
+          e.preventDefault();
+          var args = $('.prompt').val();
+          $('.prompt').val('');
+          $.getJSON('/scan/', {'cmd': args}, function(r){
+            $(r.results).each(function(i, e){
+              $('<li/>').text(e.raw).appendTo('.output');
+            });
+            $('<li/>').addClass('divider').appendTo('.output');
           });
         });
       });
     </script>
+    <style type="text/css">
+      body, html, ul {
+        padding: 0;
+        margin: 0;
+      }
+      body {
+        background-color: #222;
+        font: 12pt "Monaco";
+        color: #fff;
+      }
+      .divider {
+        border: 1px solid #aaa;
+      }
+      .log {
+        width: 100%;
+      }
+      .output {
+        margin: 5px;
+        list-style: none;
+      }
+      .prompt {
+        bottom: 0;
+        height: 30px;
+        width: 100%;
+        border: none;
+        position: fixed;
+        font: 12pt "Monaco";
+        background-color: #fff;
+      }
+      .prompt:focus {
+        outline-width: 0;
+      }
+    </style>
   </head>
   <body>
-    <button type="button">Go!</button>
-    <blockquote id="results"></blockquote>
+    <div class="wrapper">
+      <div class="log">
+        <ul class="output"></ul>
+      </div>
+      <form method="post" action="">
+        <input type="text" class="prompt"></input>
+      </form>
+    </div>
   </body>
 </html>
