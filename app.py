@@ -1,4 +1,6 @@
+import os
 import re
+import sys
 import logging
 import sqlite3
 import subprocess
@@ -6,19 +8,23 @@ import tornado.ioloop
 import tornado.web
 from tornado import template
 
+
+def initialize(self):
+    logging.debug('INITIALIZING')
+    conn = sqlite3.connect(":memory:")
+    cursor = conn.cursor()
+    cursor.execute('CREATE TABLE notes (kw text value text)')
+
+
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self):
-        self.loader = template.Loader('/Users/filipp/Projects/intercheck')
+        self.loader = template.Loader(os.path.dirname(__file__))
 
     def get(self):
         self.write(self.loader.load("index.html").generate())
         
 
 class ScanHandler(tornado.web.RequestHandler):
-    def initialize(self):
-        conn = sqlite3.connect(":memory:")
-        self.cursor = conn.cursor()
-        self.cursor.execute('CREATE TABLE notes kw text value text')
         
     def get(self):
         commands = ('nmap', 'help', '?', '!',)
@@ -49,18 +55,15 @@ class ScanHandler(tornado.web.RequestHandler):
         self.write(out)
 
 
-class HelpHandler(tornado.web.RequestHandler):
-    def get(self):
-        out = {'results': list()}
-
-
 application = tornado.web.Application([
     (r'/', MainHandler),
     (r'/scan/', ScanHandler),
-    (r'/help/', HelpHandler),
 ])
 
 if __name__ == '__main__':
+    if 'init' in sys.argv:
+        initialize()
+
     application.listen(8888)
     logging.basicConfig(level=logging.DEBUG)
     logging.debug('intercheck ready for action...')
