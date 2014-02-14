@@ -41,8 +41,9 @@ class ScanHandler(tornado.web.RequestHandler):
             out['results'].append({'raw': '* help - shows this help message'})
 
         if cmd == 'nmap':
-            logging.debug('SCANNING!')
-            result = subprocess.check_output(['nmap', self.request.remote_ip])
+            host = self.request.headers.get('X-Real-IP', self.request.remote_ip)
+            logging.debug('SCANNING %s' % host)
+            result = subprocess.check_output(['nmap', host])
             for r in re.finditer(r'(\d+/[a-z]{3})\s([a-z]+)\s+(.+)', result):
                 t = r.groups()
                 out['results'].append({
