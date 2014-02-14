@@ -53,6 +53,9 @@ class ScanHandler(tornado.web.RequestHandler):
                     'raw': "    ".join(r.groups(0))
                 })
 
+            if len(out['results']) < 1:
+                out['results'].append({'raw': 'No open ports found'})
+                
         self.write(out)
 
 
