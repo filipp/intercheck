@@ -30,9 +30,9 @@ class ScanHandler(tornado.web.RequestHandler):
         commands = ('nmap', 'help', '?', '!',)
 
         out = {'results': list()}
-        cmd = self.get_argument('cmd', '')
+        cmd = self.get_argument('cmd', 'help')
 
-        if cmd not in commands or cmd == 'help':
+        if cmd == 'help' or cmd not in commands:
             out['results'].append({'raw': 'Available commands:'})
             out['results'].append({'raw': '* nmap - scan your IP'})
             out['results'].append({'raw': '* ?<keyword> - query keyword'})

@@ -10,12 +10,13 @@
           e.preventDefault();
           var args = $('.prompt').val();
           $('.prompt').val('');
-          $.getJSON('scan/', {'cmd': args}, function(r){
-            $(r.results).each(function(i, e){
-              $('<li/>').text(e.raw).appendTo('.output');
+          $.getJSON('scan/', {'cmd': args},
+            function(r){
+              $(r.results).each(function(i, e){
+                $('<li/>').text(e.raw).appendTo('.output');
+              });
+              $('<li/>').addClass('divider').appendTo('.output');
             });
-            $('<li/>').addClass('divider').appendTo('.output');
-          });
         });
       });
     </script>
